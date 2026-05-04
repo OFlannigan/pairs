@@ -1,0 +1,9 @@
+[tools]
+prek = "0.3"
+cargo-binstall = "1.17"
+"cargo:cargo-nextest" = "0.9"
+"cargo:cargo-update" = "18.1"
+
+[settings]
+trusted_config_paths = ["~"]
+lockfile = true
