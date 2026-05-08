@@ -8,3 +8,10 @@ updates:
       timezone: "Europe/Berlin"
     cooldown:
       default-days: 14
+
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "Europe/Berlin"
