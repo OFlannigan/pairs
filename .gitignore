@@ -1,4 +1,17 @@
+# Build files
 /target
+
+# System files
 .vscode
 .idea
 .DS_store
+
+# Terraform files
+.terraform
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+
+# Environment variable files
+.env
+.envrc
