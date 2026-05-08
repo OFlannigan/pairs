@@ -1,6 +1,9 @@
 [tools]
-prek = "0.3"
 cargo-binstall = "1.17"
+direnv = "2.37"
+github-cli = "2.92"
+opentofu = "1.11"
+prek = "0.3"
 "cargo:cargo-nextest" = "0.9"
 "cargo:cargo-update" = "18.1"
 
