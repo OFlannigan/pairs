@@ -11,3 +11,34 @@ resource "github_repository" "pairs" {
 
   ignore_vulnerability_alerts_during_read = false
 }
+
+resource "github_branch" "development" {
+  branch     = "dev"
+  repository = github_repository.pairs.name
+}
+
+resource "github_branch" "main" {
+  branch     = "main"
+  repository = github_repository.pairs.name
+}
+
+resource "github_branch_default" "default" {
+  branch     = github_branch.main.branch
+  repository = github_repository.pairs.name
+}
+
+resource "github_branch_protection" "main_protection" {
+  repository_id = github_repository.pairs.node_id
+
+  pattern          = "main"
+  allows_deletions = false
+
+  allows_force_pushes = false
+
+  require_conversation_resolution = true
+
+  required_status_checks {
+    strict   = false
+    contexts = []
+  }
+}
