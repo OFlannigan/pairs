@@ -8,8 +8,6 @@ resource "github_repository" "pairs" {
   has_issues      = true
   has_projects    = false
   has_wiki        = true
-
-  ignore_vulnerability_alerts_during_read = false
 }
 
 resource "github_branch" "development" {
