@@ -1,7 +1,7 @@
 use std::env;
 use std::process;
 
-mod git;
+mod git_validation;
 
 fn main() {
     let current_dir = match env::current_dir() {
@@ -12,7 +12,7 @@ fn main() {
         }
     };
 
-    match git::validate_git_setup(&current_dir) {
+    match git_validation::validate_git_setup(&current_dir) {
         Ok(_) => {
             // not yet implemented
             println!("Validation completed successfully.");
