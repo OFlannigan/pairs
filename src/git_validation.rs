@@ -20,7 +20,9 @@ impl Display for GitValidationError {
             GitValidationError::GitNotAvailable => {
                 write!(f, "Git is not installed or not available in PATH.")
             }
-            GitValidationError::NotAGitRepository => write!(f, "Current directory is not a Git repository."),
+            GitValidationError::NotAGitRepository => {
+                write!(f, "Current directory is not a Git repository.")
+            }
             GitValidationError::UserNameNotSet => write!(
                 f,
                 "Git user.name is not set. Please configure it using `git config --global user.name \"Your Name\"`."
