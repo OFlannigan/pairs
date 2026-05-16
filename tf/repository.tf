@@ -40,3 +40,27 @@ resource "github_branch_protection" "main_protection" {
     contexts = []
   }
 }
+
+resource "github_issue_labels" "pairs_labels" {
+  repository = github_repository.pairs.name
+
+  label {
+    color = "FF0000"
+    name  = "Bug"
+  }
+
+  label {
+    color = "FFFF00"
+    name  = "Needs Triage"
+  }
+
+  label {
+    color = "00FF00"
+    name  = "Feature"
+  }
+
+  label {
+    color = "FF0000"
+    name  = "Urgent"
+  }
+}
