@@ -1,29 +1,15 @@
-use std::env;
-use std::process;
+mod cli;
+mod commands;
+mod error;
 
-mod git_operation;
-mod git_validation;
+use clap::Parser;
+use cli::Cli;
 
 fn main() {
-    let current_dir = match env::current_dir() {
-        Ok(dir) => dir,
-        Err(e) => {
-            eprintln!("Failed to get current directory: {e}");
-            process::exit(1);
-        }
-    };
+    let cli = Cli::parse();
 
-    match git_validation::validate_git_setup(&current_dir) {
-        Ok(_) => {
-            if git_operation::has_git_changes().is_ok() {
-                git_operation::stash_changes();
-                process::exit(0);
-            }
-            process::exit(1);
-        }
-        Err(e) => {
-            eprintln!("Git setup validation failed: {e}");
-            process::exit(1);
-        }
+    if let Err(e) = commands::dispatch(cli) {
+        eprintln!("error: {e}");
+        std::process::exit(1);
     }
 }
