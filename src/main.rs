@@ -1,8 +1,15 @@
 mod cli;
+mod commands;
+mod error;
 
 use clap::Parser;
 use cli::Cli;
 
 fn main() {
-    let _cli = Cli::parse();
+    let cli = Cli::parse();
+
+    if let Err(e) = commands::dispatch(cli) {
+        eprintln!("error: {e}");
+        std::process::exit(1);
+    }
 }
