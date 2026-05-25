@@ -37,7 +37,10 @@ impl ExecutableCommand for StashCommand {
             .map_err(|err| PairsError::Io(Error::from(err)))?;
 
         if discard {
-            git::reset_hard_head()?;
+            // Guard against repos with no prior commits where HEAD is ambiguous
+            if git::has_commits()? {
+                git::reset_hard_head()?;
+            }
             git::clean_fd()?;
         } else {
             git::merge_squash_no_commit(&branch_name)?;

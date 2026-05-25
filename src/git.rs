@@ -31,8 +31,18 @@ pub fn is_working_tree_clean() -> Result<bool> {
     Ok(output.is_empty())
 }
 
+/// Checks if the repository has any commits yet.
+/// This is important for operations that rely on HEAD, which can be ambiguous in a repository with no commits.
+pub fn has_commits() -> Result<bool> {
+    run_git_check(&["rev-parse", "--verify", "HEAD"])
+}
+
 /// Returns the name of the current branch.
 pub fn current_branch() -> Result<String> {
+    // Guard against repos with no prior commits where HEAD is ambiguous
+    if !has_commits()? {
+        return Err(PairsError::NoCommitsYet);
+    }
     run_git_command_captured(&["rev-parse", "--abbrev-ref", "HEAD"])
 }
 
@@ -144,4 +154,15 @@ fn run_git_command_streaming(args: &[&str]) -> Result<()> {
             status
         )))
     }
+}
+
+/// Helper function to run a git command and check if it executed successfully without caring about its output.
+fn run_git_check(args: &[&str]) -> Result<bool> {
+    let output = Command::new("git")
+        .args(args)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()?;
+
+    Ok(output.success())
 }

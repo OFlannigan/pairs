@@ -13,6 +13,7 @@ pub enum PairsError {
     NoPinsFound,
     NothingToStash,
     Io(std::io::Error),
+    NoCommitsYet,
 }
 
 impl Error for PairsError {}
@@ -26,6 +27,10 @@ impl Display for PairsError {
             PairsError::NoPinsFound => write!(f, "No pins found."),
             PairsError::NothingToStash => write!(f, "Working tree is clean, nothing to stash."),
             PairsError::Io(err) => write!(f, "IO error: {err}"),
+            PairsError::NoCommitsYet => write!(
+                f,
+                "Not inside a git repository with at least one commit. Please make an initial commit first."
+            ),
         }
     }
 }
