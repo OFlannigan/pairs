@@ -1,6 +1,6 @@
 [package]
 name = "pairs"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2024"
 description = "pairs - simplify pair programming and keep your commit history clean"
 authors = ["Nico Barton"]
@@ -8,6 +8,7 @@ authors = ["Nico Barton"]
 [dependencies]
 rand = "0.10.1"
 clap = { version = "4.6.1", features = ["derive"] }
+dialoguer = "0.12.0"
 
 [lints.rust]
 unsafe_code = "forbid"
