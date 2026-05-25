@@ -17,12 +17,25 @@ impl Pin {
     pub fn branch_name(&self) -> String {
         format!("pairs/{}", self.0)
     }
+
+    /// Returns the string representation of the pin, which is the numeric value as a string.
+    pub fn as_str(&self) -> String {
+        self.0.to_string()
+    }
 }
 
 impl std::fmt::Display for Pin {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
+}
+
+#[derive(Debug, Clone)]
+/// Represents an entry in the stash, containing the pin, author, and creation time.
+pub struct StashEntry {
+    pub pin: Pin,
+    pub author: String,
+    pub created_at: String,
 }
 
 /// Checks if the working tree is clean (i.e., no uncommitted changes).
@@ -115,6 +128,42 @@ pub fn clean_fd() -> Result<()> {
 /// Performs a squash merge of the specified branch into the current branch without creating a commit.
 pub fn merge_squash_no_commit(branch: &str) -> Result<()> {
     run_git_command_streaming(&["merge", "--no-commit", "--squash", branch])
+}
+
+/// Lists all stash entries by querying remote branches that follow the "origin/pairs/*" pattern.
+/// Parses the output to extract the pin, author, and creation time for each entry, returning a vector of `StashEntry` instances.
+pub fn list_stash_entries() -> Result<Vec<StashEntry>> {
+    let format = "%(refname:short)\x1d%(authorname)\x1d%(committerdate:relative)";
+    let output = run_git_command_captured(&[
+        "for-each-ref",
+        "--sort=committerdate",
+        "refs/remotes/origin/pairs/*",
+        &format!("--format={format}"),
+    ])?;
+
+    if output.is_empty() {
+        return Ok(vec![]);
+    }
+
+    let entries = output
+        .lines()
+        .filter_map(|line| {
+            let parts: Vec<&str> = line.splitn(3, '\x1d').collect();
+            if parts.len() == 3 {
+                let pin_str = parts.first()?.trim_start_matches("origin/pairs/");
+                let pin = pin_str.parse::<u16>().ok()?;
+                Some(StashEntry {
+                    pin: Pin::new(pin),
+                    author: parts.get(1)?.to_string(),
+                    created_at: parts.get(2)?.to_string(),
+                })
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    Ok(entries)
 }
 
 /// Helper function to run a git command and capture its output.
