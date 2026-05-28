@@ -18,9 +18,14 @@ impl Pin {
         format!("pairs/{}", self.0)
     }
 
-    /// Returns the string representation of the pin, which is the numeric value as a string.
+    /// Returns the string representation of the pin, which is the numeric value as a `String`.
     pub fn as_str(&self) -> String {
         self.0.to_string()
+    }
+
+    /// Returns the numeric value of the pin as a `u16`.
+    pub fn as_u16(&self) -> u16 {
+        self.0
     }
 }
 
@@ -77,7 +82,7 @@ pub fn generate_unique_pin() -> Result<Pin> {
 }
 
 /// Checks if a remote branch corresponding to the given pin exists in the origin repository.
-fn remote_branch_exists(pin: &Pin) -> Result<bool> {
+pub fn remote_branch_exists(pin: &Pin) -> Result<bool> {
     let output = Command::new("git")
         .args(["ls-remote", "--heads", "origin", &pin.branch_name()])
         .output()?;
@@ -113,6 +118,11 @@ pub fn checkout(branch: &str) -> Result<()> {
 /// Deletes the specified branch from the local repository.
 pub fn delete_branch_local(branch: &str) -> Result<()> {
     run_git_command_streaming(&["branch", "-D", branch])
+}
+
+/// Deletes the specified branch from the remote repository (origin).
+pub fn delete_branch_remote(branch: &str) -> Result<()> {
+    run_git_command_streaming(&["push", "origin", "--delete", branch])
 }
 
 /// Resets the current HEAD to the last commit, discarding any uncommitted changes in the working directory.
@@ -164,6 +174,16 @@ pub fn list_stash_entries() -> Result<Vec<StashEntry>> {
         .collect();
 
     Ok(entries)
+}
+
+/// Performs a git pull with rebase to update the current branch with the latest changes from the remote repository.
+pub fn pull_rebase() -> Result<()> {
+    run_git_command_streaming(&["pull", "-r"])
+}
+
+/// Resets the current branch to the last commit, but keeps changes in the working directory (i.e., unstaged changes).
+pub fn reset_mixed() -> Result<()> {
+    run_git_command_streaming(&["reset", "--mixed"])
 }
 
 /// Helper function to run a git command and capture its output.
