@@ -2,7 +2,7 @@ resource "github_repository" "pairs" {
   name        = "pairs"
   description = "Command line tool to simplify pair programming, written in Rust"
 
-  visibility = "private"
+  visibility = "public"
 
   has_discussions = true
   has_issues      = true
