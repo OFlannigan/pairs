@@ -2,10 +2,6 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug)]
-#[expect(
-    dead_code,
-    reason = "currently not implemented, but will be used in the future"
-)] // TODO: remove this once operations are implemented
 pub enum PairsError {
     GitCommandFailed(String),
     UnknownPin(u16),
