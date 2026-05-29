@@ -14,6 +14,7 @@ pub enum PairsError {
     NothingToStash,
     Io(std::io::Error),
     NoCommitsYet,
+    UserAborted,
 }
 
 impl Error for PairsError {}
@@ -31,6 +32,7 @@ impl Display for PairsError {
                 f,
                 "Not inside a git repository with at least one commit. Please make an initial commit first."
             ),
+            PairsError::UserAborted => write!(f, "User aborted"),
         }
     }
 }
