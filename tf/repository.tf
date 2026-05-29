@@ -63,4 +63,16 @@ resource "github_issue_labels" "pairs_labels" {
     color = "FF0000"
     name  = "Urgent"
   }
+
+  label {
+    color       = "000000"
+    name        = "pre_commit"
+    description = "Pull requests that update pre_commit code"
+  }
+
+  label {
+    color       = "0366D6"
+    name        = "dependecies"
+    description = "Pull requests that update a dependency file"
+  }
 }
