@@ -186,6 +186,27 @@ pub fn reset_mixed() -> Result<()> {
     run_git_command_streaming(&["reset", "--mixed"])
 }
 
+/// Validates that the current directory is a git repository and that it has a remote named "origin" configured.
+pub fn validate_repository() -> Result<()> {
+    if !is_inside_git_repository()? {
+        return Err(PairsError::NotAGitRepository);
+    }
+    if !has_remote_origin()? {
+        return Err(PairsError::NoRemoteOrigin);
+    }
+    Ok(())
+}
+
+/// Checks if the current directory is inside a git repository.
+fn is_inside_git_repository() -> Result<bool> {
+    run_git_check(&["rev-parse", "--is-inside-work-tree"])
+}
+
+/// Checks if the repository has a remote named "origin" configured.
+fn has_remote_origin() -> Result<bool> {
+    run_git_check(&["remote", "get-url", "origin"])
+}
+
 /// Helper function to run a git command and capture its output.
 /// Returning the `stdout` as a `String` if successful, or an error if the command fails.
 fn run_git_command_captured(args: &[&str]) -> Result<String> {

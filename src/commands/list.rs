@@ -4,6 +4,8 @@ pub struct ListCommand;
 
 impl ExecutableCommand for ListCommand {
     fn execute(&self) -> Result<()> {
+        git::validate_repository()?;
+
         git::fetch_all()?;
 
         let entries = git::list_stash_entries()?;

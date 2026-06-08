@@ -10,6 +10,8 @@ pub struct StashCommand;
 
 impl ExecutableCommand for StashCommand {
     fn execute(&self) -> Result<()> {
+        git::validate_repository()?;
+
         if git::is_working_tree_clean()? {
             return Err(PairsError::NothingToStash);
         }

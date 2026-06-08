@@ -9,6 +9,8 @@ pub struct PopCommand;
 
 impl ExecutableCommand for PopCommand {
     fn execute(&self) -> Result<()> {
+        git::validate_repository()?;
+
         println!("Attempting to pop automatically...");
 
         git::fetch_all()?;

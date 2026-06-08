@@ -17,6 +17,8 @@ impl ApplyCommand {
 
 impl ExecutableCommand for ApplyCommand {
     fn execute(&self) -> crate::error::Result<()> {
+        git::validate_repository()?;
+
         let branch_name = self.pin.branch_name();
 
         git::pull_rebase()?;
