@@ -1,21 +1,21 @@
+use crate::git_client::GitClient;
 use crate::prompter::Prompter;
 use crate::{
     commands::{ExecutableCommand, apply::ApplyCommand},
     error::{PairsError, Result},
-    git,
 };
 
 pub struct PopCommand;
 
 impl ExecutableCommand for PopCommand {
-    fn execute(&self, prompter: &dyn Prompter) -> Result<()> {
-        git::validate_repository()?;
+    fn execute(&self, prompter: &dyn Prompter, git_client: &dyn GitClient) -> Result<()> {
+        git_client.validate_repository()?;
 
         println!("Attempting to pop automatically...");
 
-        git::fetch_all()?;
+        git_client.fetch_all()?;
 
-        let entries = git::list_stash_entries()?;
+        let entries = git_client.list_stash_entries()?;
 
         let pin = match entries.len() {
             0 => return Err(PairsError::NoPinsFound),
@@ -37,6 +37,6 @@ impl ExecutableCommand for PopCommand {
         };
 
         println!("Trying to pop '{pin}'");
-        ApplyCommand::new(pin).execute(prompter)
+        ApplyCommand::new(pin).execute(prompter, git_client)
     }
 }

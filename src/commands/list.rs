@@ -1,15 +1,16 @@
+use crate::git_client::GitClient;
 use crate::prompter::Prompter;
-use crate::{commands::ExecutableCommand, error::Result, git};
+use crate::{commands::ExecutableCommand, error::Result};
 
 pub struct ListCommand;
 
 impl ExecutableCommand for ListCommand {
-    fn execute(&self, _prompter: &dyn Prompter) -> Result<()> {
-        git::validate_repository()?;
+    fn execute(&self, _prompter: &dyn Prompter, git_client: &dyn GitClient) -> Result<()> {
+        git_client.validate_repository()?;
 
-        git::fetch_all()?;
+        git_client.fetch_all()?;
 
-        let entries = git::list_stash_entries()?;
+        let entries = git_client.list_stash_entries()?;
 
         if entries.is_empty() {
             println!("No remote stashes found.");

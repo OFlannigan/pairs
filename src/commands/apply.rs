@@ -1,7 +1,6 @@
 use crate::commands::ExecutableCommand;
 use crate::error::PairsError;
-use crate::git;
-use crate::git::Pin;
+use crate::git_client::{GitClient, Pin};
 use crate::prompter::Prompter;
 
 pub struct ApplyCommand {
@@ -15,33 +14,37 @@ impl ApplyCommand {
 }
 
 impl ExecutableCommand for ApplyCommand {
-    fn execute(&self, prompter: &dyn Prompter) -> crate::error::Result<()> {
-        git::validate_repository()?;
+    fn execute(
+        &self,
+        prompter: &dyn Prompter,
+        git_client: &dyn GitClient,
+    ) -> crate::error::Result<()> {
+        git_client.validate_repository()?;
 
         let branch_name = self.pin.branch_name();
 
-        git::pull_rebase()?;
+        git_client.pull_rebase()?;
 
-        let current_branch = git::current_branch()?;
+        let current_branch = git_client.current_branch()?;
 
-        git::fetch_all()?;
+        git_client.fetch_all()?;
 
-        if !git::remote_branch_exists(&self.pin)? {
+        if !git_client.remote_branch_exists(&self.pin)? {
             return Err(PairsError::UnknownPin(self.pin.as_u16()));
         }
 
-        git::checkout(&branch_name)?;
-        git::pull_rebase()?;
-        git::checkout(&current_branch)?;
-        git::merge_squash_no_commit(&branch_name)?;
-        git::reset_mixed()?;
+        git_client.checkout(&branch_name)?;
+        git_client.pull_rebase()?;
+        git_client.checkout(&current_branch)?;
+        git_client.merge_squash_no_commit(&branch_name)?;
+        git_client.reset_mixed()?;
 
         let delete =
             prompter.confirm("Delete temporary pairs branch locally and remotely?", true)?;
 
         if delete {
-            git::delete_branch_local(&branch_name)?;
-            git::delete_branch_remote(&branch_name)?;
+            git_client.delete_branch_local(&branch_name)?;
+            git_client.delete_branch_remote(&branch_name)?;
         }
 
         Ok(())
