@@ -20,13 +20,13 @@ impl ExecutableCommand for ListCommand {
         // Dynamic column widths based on content
         let pin_width = entries
             .iter()
-            .map(|entry| entry.pin.as_str().len())
+            .map(|entry| entry.pin.as_str().chars().count())
             .max()
             .unwrap_or(3)
             .max(3);
         let author_width = entries
             .iter()
-            .map(|entry| entry.author.len())
+            .map(|entry| entry.author.chars().count())
             .max()
             .unwrap_or(6)
             .max(6);
