@@ -1,9 +1,10 @@
+use crate::prompter::Prompter;
 use crate::{commands::ExecutableCommand, error::Result, git};
 
 pub struct ListCommand;
 
 impl ExecutableCommand for ListCommand {
-    fn execute(&self) -> Result<()> {
+    fn execute(&self, _prompter: &dyn Prompter) -> Result<()> {
         git::validate_repository()?;
 
         git::fetch_all()?;

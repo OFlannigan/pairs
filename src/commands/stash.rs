@@ -1,15 +1,14 @@
+use crate::prompter::Prompter;
 use crate::{
     commands::ExecutableCommand,
     error::{PairsError, Result},
     git,
 };
-use dialoguer::Confirm;
-use std::io::Error;
 
 pub struct StashCommand;
 
 impl ExecutableCommand for StashCommand {
-    fn execute(&self) -> Result<()> {
+    fn execute(&self, prompter: &dyn Prompter) -> Result<()> {
         git::validate_repository()?;
 
         if git::is_working_tree_clean()? {
@@ -32,11 +31,7 @@ impl ExecutableCommand for StashCommand {
         println!();
         println!("pairs pin: {pin}");
 
-        let discard = Confirm::new()
-            .with_prompt("Discard changes locally?")
-            .default(true)
-            .interact()
-            .map_err(|err| PairsError::Io(Error::from(err)))?;
+        let discard = prompter.confirm("Discard changes locally?", true)?;
 
         if discard {
             // Guard against repos with no prior commits where HEAD is ambiguous

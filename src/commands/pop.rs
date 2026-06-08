@@ -1,14 +1,14 @@
+use crate::prompter::Prompter;
 use crate::{
     commands::{ExecutableCommand, apply::ApplyCommand},
     error::{PairsError, Result},
     git,
 };
-use dialoguer::Select;
 
 pub struct PopCommand;
 
 impl ExecutableCommand for PopCommand {
-    fn execute(&self) -> Result<()> {
+    fn execute(&self, prompter: &dyn Prompter) -> Result<()> {
         git::validate_repository()?;
 
         println!("Attempting to pop automatically...");
@@ -26,12 +26,7 @@ impl ExecutableCommand for PopCommand {
                     .map(|e| format!("{:<8}  {:<20}  {}", e.pin.as_u16(), e.author, e.created_at))
                     .collect();
 
-                let selection = Select::new()
-                    .with_prompt("Select a stash to pop")
-                    .items(&display_items)
-                    .default(0)
-                    .interact()
-                    .map_err(|_| PairsError::UserAborted)?;
+                let selection = prompter.select("Select a stash to pop", &display_items, 0)?;
 
                 entries
                     .get(selection)
@@ -42,6 +37,6 @@ impl ExecutableCommand for PopCommand {
         };
 
         println!("Trying to pop '{pin}'");
-        ApplyCommand::new(pin).execute()
+        ApplyCommand::new(pin).execute(prompter)
     }
 }

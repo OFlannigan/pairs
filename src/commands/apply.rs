@@ -2,8 +2,7 @@ use crate::commands::ExecutableCommand;
 use crate::error::PairsError;
 use crate::git;
 use crate::git::Pin;
-use dialoguer::Confirm;
-use std::io::Error;
+use crate::prompter::Prompter;
 
 pub struct ApplyCommand {
     pin: Pin,
@@ -16,7 +15,7 @@ impl ApplyCommand {
 }
 
 impl ExecutableCommand for ApplyCommand {
-    fn execute(&self) -> crate::error::Result<()> {
+    fn execute(&self, prompter: &dyn Prompter) -> crate::error::Result<()> {
         git::validate_repository()?;
 
         let branch_name = self.pin.branch_name();
@@ -37,11 +36,8 @@ impl ExecutableCommand for ApplyCommand {
         git::merge_squash_no_commit(&branch_name)?;
         git::reset_mixed()?;
 
-        let delete = Confirm::new()
-            .with_prompt("Delete temporary pairs branch locally and remotely?")
-            .default(true)
-            .interact()
-            .map_err(|err| PairsError::Io(Error::from(err)))?;
+        let delete =
+            prompter.confirm("Delete temporary pairs branch locally and remotely?", true)?;
 
         if delete {
             git::delete_branch_local(&branch_name)?;

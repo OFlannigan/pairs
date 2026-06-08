@@ -5,6 +5,7 @@ pub mod stash;
 
 use crate::error::PairsError;
 use crate::git::Pin;
+use crate::prompter::Prompter;
 use crate::{
     cli::{Cli, PairsCommand},
     error::Result,
@@ -12,22 +13,22 @@ use crate::{
 
 /// A trait that all command structs implement, ensuring they have an `execute` method.
 pub trait ExecutableCommand {
-    fn execute(&self) -> Result<()>;
+    fn execute(&self, prompter: &dyn Prompter) -> Result<()>;
 }
 
 /// Dispatches the appropriate command based on the provided CLI arguments.
-pub fn dispatch(cli: Cli) -> Result<()> {
+pub fn dispatch(cli: Cli, prompter: &dyn Prompter) -> Result<()> {
     match (cli.command, cli.pin) {
-        (None, None) => stash::StashCommand.execute(),
-        (Some(PairsCommand::List), _) => list::ListCommand.execute(),
-        (Some(PairsCommand::Pop), _) => pop::PopCommand.execute(),
+        (None, None) => stash::StashCommand.execute(prompter),
+        (Some(PairsCommand::List), _) => list::ListCommand.execute(prompter),
+        (Some(PairsCommand::Pop), _) => pop::PopCommand.execute(prompter),
         (None, Some(raw_pin)) => {
             let pin = raw_pin
                 .parse::<u16>()
                 .map(Pin::new)
                 .map_err(|_| PairsError::InvalidPin(raw_pin))?;
 
-            apply::ApplyCommand::new(pin).execute()
+            apply::ApplyCommand::new(pin).execute(prompter)
         }
     }
 }
@@ -40,6 +41,7 @@ pub fn dispatch(cli: Cli) -> Result<()> {
 mod tests {
     use crate::cli::Cli;
     use crate::commands::dispatch;
+    use crate::prompter::MockPrompter;
     use rstest::rstest;
 
     #[rstest(
@@ -55,9 +57,10 @@ mod tests {
             command: None,
             pin: Some(pin_value.to_owned()),
         };
+        let prompter = MockPrompter::new();
 
         // when
-        let result = dispatch(cli);
+        let result = dispatch(cli, &prompter);
 
         // then
         assert!(result.is_err());
