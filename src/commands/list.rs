@@ -54,3 +54,110 @@ impl ExecutableCommand for ListCommand {
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[expect(
+    clippy::unwrap_used,
+    reason = "Tests are set up to expect errors and unwrap them for assertions."
+)]
+mod tests {
+    use crate::commands::ExecutableCommand;
+    use crate::commands::list::ListCommand;
+    use crate::error::PairsError;
+    use crate::git_client::{MockGitClient, Pin, StashEntry};
+    use crate::prompter::MockPrompter;
+
+    #[test]
+    fn no_stashes_returns_empty_list() {
+        // given
+        let mut mock_git_client = MockGitClient::new();
+        mock_git_client
+            .expect_validate_repository()
+            .returning(|| Ok(()));
+        mock_git_client.expect_fetch_all().returning(|| Ok(()));
+        mock_git_client
+            .expect_list_stash_entries()
+            .returning(|| Ok(vec![]));
+
+        let mock_prompter = MockPrompter::new();
+
+        // when
+        let result = ListCommand.execute(&mock_prompter, &mock_git_client);
+
+        // then
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn list_stashes_returns_entries() {
+        // given
+        let mut mock_git_client = MockGitClient::new();
+        mock_git_client
+            .expect_validate_repository()
+            .returning(|| Ok(()));
+        mock_git_client.expect_fetch_all().returning(|| Ok(()));
+        mock_git_client.expect_list_stash_entries().returning(|| {
+            Ok(vec![
+                StashEntry {
+                    pin: Pin::new(123),
+                    author: String::from("Alice"),
+                    created_at: String::from("2024-01-01 12:00:00"),
+                },
+                StashEntry {
+                    pin: Pin::new(456),
+                    author: String::from("Bob"),
+                    created_at: String::from("2024-01-02 13:30:00"),
+                },
+            ])
+        });
+
+        let mock_prompter = MockPrompter::new();
+
+        // when
+        let result = ListCommand.execute(&mock_prompter, &mock_git_client);
+
+        // then
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn list_returns_error_on_failed_validation() {
+        // given
+        let mut mock_git_client = MockGitClient::new();
+        mock_git_client
+            .expect_validate_repository()
+            .returning(|| Err(PairsError::NotAGitRepository));
+
+        let mock_prompter = MockPrompter::new();
+
+        // when
+        let result = ListCommand.execute(&mock_prompter, &mock_git_client);
+
+        // then
+        assert!(result.is_err());
+        let error_message = format!("{}", result.unwrap_err());
+        assert!(error_message.contains("Not within a git repository"));
+    }
+
+    #[test]
+    fn list_returns_error_on_failed_fetch() {
+        // given
+        let mut mock_git_client = MockGitClient::new();
+        mock_git_client
+            .expect_validate_repository()
+            .returning(|| Ok(()));
+        mock_git_client
+            .expect_fetch_all()
+            .returning(|| Err(PairsError::GitCommandFailed(String::from("network error"))));
+
+        let mock_prompter = MockPrompter::new();
+
+        // when
+        let result = ListCommand.execute(&mock_prompter, &mock_git_client);
+
+        // then
+        assert!(result.is_err());
+        let error_message = format!("{}", result.unwrap_err());
+        assert!(error_message.contains("Git command failed: network error"));
+    }
+}
