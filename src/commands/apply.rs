@@ -2,6 +2,7 @@ use crate::commands::ExecutableCommand;
 use crate::error::{PairsError, Result};
 use crate::git_client::{GitClient, Pin};
 use crate::prompter::Prompter;
+use std::io::Write;
 
 pub struct ApplyCommand {
     pin: Pin,
@@ -14,7 +15,12 @@ impl ApplyCommand {
 }
 
 impl ExecutableCommand for ApplyCommand {
-    fn execute(&self, prompter: &dyn Prompter, git_client: &dyn GitClient) -> Result<()> {
+    fn execute(
+        &self,
+        prompter: &dyn Prompter,
+        git_client: &dyn GitClient,
+        _writer: &mut dyn Write,
+    ) -> Result<()> {
         git_client.validate_repository()?;
 
         let branch_name = self.pin.branch_name();
@@ -91,8 +97,10 @@ mod tests {
         let mut mock_prompter = MockPrompter::new();
         mock_prompter.expect_confirm().returning(|_, _| Ok(true));
 
+        let mut output = Vec::new();
+
         // when
-        let result = apply_command.execute(&mock_prompter, &mock_git_client);
+        let result = apply_command.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_ok());
@@ -125,8 +133,10 @@ mod tests {
         let mut mock_prompter = MockPrompter::new();
         mock_prompter.expect_confirm().returning(|_, _| Ok(false));
 
+        let mut output = Vec::new();
+
         // when
-        let result = apply_command.execute(&mock_prompter, &mock_git_client);
+        let result = apply_command.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_ok());
@@ -152,8 +162,10 @@ mod tests {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = apply_command.execute(&mock_prompter, &mock_git_client);
+        let result = apply_command.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_err());
@@ -172,8 +184,10 @@ mod tests {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = apply_command.execute(&mock_prompter, &mock_git_client);
+        let result = apply_command.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_err());

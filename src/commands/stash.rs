@@ -4,11 +4,17 @@ use crate::{
     commands::ExecutableCommand,
     error::{PairsError, Result},
 };
+use std::io::Write;
 
 pub struct StashCommand;
 
 impl ExecutableCommand for StashCommand {
-    fn execute(&self, prompter: &dyn Prompter, git_client: &dyn GitClient) -> Result<()> {
+    fn execute(
+        &self,
+        prompter: &dyn Prompter,
+        git_client: &dyn GitClient,
+        writer: &mut dyn Write,
+    ) -> Result<()> {
         git_client.validate_repository()?;
 
         if git_client.is_working_tree_clean()? {
@@ -28,8 +34,8 @@ impl ExecutableCommand for StashCommand {
         git_client.push_set_upstream(&branch_name)?;
         git_client.checkout(&current_branch)?;
 
-        println!();
-        println!("pairs pin: {pin}");
+        writeln!(writer).ok();
+        writeln!(writer, "pairs pin: {pin}").ok();
 
         let discard = prompter.confirm("Discard changes locally?", true)?;
 
@@ -72,8 +78,10 @@ mod tests {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = StashCommand.execute(&mock_prompter, &mock_git_client);
+        let result = StashCommand.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_err());
@@ -91,8 +99,10 @@ mod tests {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = StashCommand.execute(&mock_prompter, &mock_git_client);
+        let result = StashCommand.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_err());
@@ -149,11 +159,15 @@ mod tests {
             .withf(|prompt, default| prompt == "Discard changes locally?" && *default)
             .returning(|_, _| Ok(true));
 
+        let mut output = Vec::new();
+
         // when
-        let result = StashCommand.execute(&mock_prompter, &mock_git_client);
+        let result = StashCommand.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_ok());
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(output_str.contains("pairs pin: 123"));
     }
 
     #[test]
@@ -202,10 +216,14 @@ mod tests {
         let mut mock_prompter = MockPrompter::new();
         mock_prompter.expect_confirm().returning(|_, _| Ok(false));
 
+        let mut output = Vec::new();
+
         // when
-        let result = StashCommand.execute(&mock_prompter, &mock_git_client);
+        let result = StashCommand.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_ok());
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(output_str.contains("pairs pin: 123"));
     }
 }

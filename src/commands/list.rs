@@ -1,11 +1,17 @@
 use crate::git_client::GitClient;
 use crate::prompter::Prompter;
 use crate::{commands::ExecutableCommand, error::Result};
+use std::io::Write;
 
 pub struct ListCommand;
 
 impl ExecutableCommand for ListCommand {
-    fn execute(&self, _prompter: &dyn Prompter, git_client: &dyn GitClient) -> Result<()> {
+    fn execute(
+        &self,
+        _prompter: &dyn Prompter,
+        git_client: &dyn GitClient,
+        writer: &mut dyn Write,
+    ) -> Result<()> {
         git_client.validate_repository()?;
 
         git_client.fetch_all()?;
@@ -13,7 +19,7 @@ impl ExecutableCommand for ListCommand {
         let entries = git_client.list_stash_entries()?;
 
         if entries.is_empty() {
-            println!("No remote stashes found.");
+            writeln!(writer, "No remote stashes found.").ok();
             return Ok(());
         };
 
@@ -31,24 +37,28 @@ impl ExecutableCommand for ListCommand {
             .unwrap_or(6)
             .max(6);
 
-        println!(
+        writeln!(
+            writer,
             "{:<pin_w$}  {:<author_w$}  CREATED AT",
             "PIN",
             "AUTHOR",
             pin_w = pin_width,
             author_w = author_width,
-        );
-        println!("{}", "-".repeat(pin_width + author_width + 20));
+        )
+        .ok();
+        writeln!(writer, "{}", "-".repeat(pin_width + author_width + 20)).ok();
 
         for entry in &entries {
-            println!(
+            writeln!(
+                writer,
                 "{:<pin_w$}  {:<author_w$}  {}",
                 entry.pin,
                 entry.author,
                 entry.created_at,
                 pin_w = pin_width,
                 author_w = author_width,
-            );
+            )
+            .ok();
         }
 
         Ok(())
@@ -81,11 +91,15 @@ mod tests {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = ListCommand.execute(&mock_prompter, &mock_git_client);
+        let result = ListCommand.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_ok());
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(output_str.contains("No remote stashes found"));
     }
 
     #[test]
@@ -113,11 +127,19 @@ mod tests {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = ListCommand.execute(&mock_prompter, &mock_git_client);
+        let result = ListCommand.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_ok());
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(output_str.contains("PIN"));
+        assert!(output_str.contains("AUTHOR"));
+        assert!(output_str.contains("CREATED AT"));
+        assert!(output_str.contains("Alice"));
+        assert!(output_str.contains("Bob"));
     }
 
     #[test]
@@ -130,8 +152,10 @@ mod tests {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = ListCommand.execute(&mock_prompter, &mock_git_client);
+        let result = ListCommand.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_err());
@@ -152,8 +176,10 @@ mod tests {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = ListCommand.execute(&mock_prompter, &mock_git_client);
+        let result = ListCommand.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_err());

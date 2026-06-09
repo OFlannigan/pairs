@@ -4,14 +4,20 @@ use crate::{
     commands::{ExecutableCommand, apply::ApplyCommand},
     error::{PairsError, Result},
 };
+use std::io::Write;
 
 pub struct PopCommand;
 
 impl ExecutableCommand for PopCommand {
-    fn execute(&self, prompter: &dyn Prompter, git_client: &dyn GitClient) -> Result<()> {
+    fn execute(
+        &self,
+        prompter: &dyn Prompter,
+        git_client: &dyn GitClient,
+        writer: &mut dyn Write,
+    ) -> Result<()> {
         git_client.validate_repository()?;
 
-        println!("Attempting to pop automatically...");
+        writeln!(writer, "Attempting to pop automatically...").ok();
 
         git_client.fetch_all()?;
 
@@ -36,8 +42,8 @@ impl ExecutableCommand for PopCommand {
             }
         };
 
-        println!("Trying to pop '{pin}'");
-        ApplyCommand::new(pin).execute(prompter, git_client)
+        writeln!(writer, "Trying to pop '{pin}'").ok();
+        ApplyCommand::new(pin).execute(prompter, git_client, writer)
     }
 }
 
@@ -65,8 +71,10 @@ mod test {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = PopCommand.execute(&mock_prompter, &mock_git_client);
+        let result = PopCommand.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_err());
@@ -75,7 +83,7 @@ mod test {
     }
 
     #[test]
-    fn apllies_pin_when_only_one_stash_exists() {
+    fn applies_pin_when_only_one_stash_exists() {
         // given
         let mut mock_git_client = MockGitClient::new();
         mock_git_client
@@ -112,11 +120,15 @@ mod test {
         let mut mock_prompter = MockPrompter::new();
         mock_prompter.expect_confirm().returning(|_, _| Ok(true));
 
+        let mut output = Vec::new();
+
         // when
-        let result = PopCommand.execute(&mock_prompter, &mock_git_client);
+        let result = PopCommand.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_ok());
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(output_str.contains("Attempting to pop automatically..."));
     }
 
     #[test]
@@ -165,11 +177,15 @@ mod test {
         mock_prompter.expect_select().returning(|_, _, _| Ok(1));
         mock_prompter.expect_confirm().returning(|_, _| Ok(true));
 
+        let mut output = Vec::new();
+
         // when
-        let result = PopCommand.execute(&mock_prompter, &mock_git_client);
+        let result = PopCommand.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_ok());
+        let output_str = String::from_utf8(output).unwrap();
+        assert!(output_str.contains("Attempting to pop automatically..."));
     }
 
     #[test]
@@ -182,8 +198,10 @@ mod test {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = PopCommand.execute(&mock_prompter, &mock_git_client);
+        let result = PopCommand.execute(&mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_err());

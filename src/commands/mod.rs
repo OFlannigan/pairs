@@ -10,25 +10,36 @@ use crate::{
     cli::{Cli, PairsCommand},
     error::Result,
 };
+use std::io::Write;
 
 /// A trait that all command structs implement, ensuring they have an `execute` method.
 pub trait ExecutableCommand {
-    fn execute(&self, prompter: &dyn Prompter, git_client: &dyn GitClient) -> Result<()>;
+    fn execute(
+        &self,
+        prompter: &dyn Prompter,
+        git_client: &dyn GitClient,
+        writer: &mut dyn Write,
+    ) -> Result<()>;
 }
 
 /// Dispatches the appropriate command based on the provided CLI arguments.
-pub fn dispatch(cli: Cli, prompter: &dyn Prompter, git_client: &dyn GitClient) -> Result<()> {
+pub fn dispatch(
+    cli: Cli,
+    prompter: &dyn Prompter,
+    git_client: &dyn GitClient,
+    writer: &mut dyn Write,
+) -> Result<()> {
     match (cli.command, cli.pin) {
-        (None, None) => stash::StashCommand.execute(prompter, git_client),
-        (Some(PairsCommand::List), _) => list::ListCommand.execute(prompter, git_client),
-        (Some(PairsCommand::Pop), _) => pop::PopCommand.execute(prompter, git_client),
+        (None, None) => stash::StashCommand.execute(prompter, git_client, writer),
+        (Some(PairsCommand::List), _) => list::ListCommand.execute(prompter, git_client, writer),
+        (Some(PairsCommand::Pop), _) => pop::PopCommand.execute(prompter, git_client, writer),
         (None, Some(raw_pin)) => {
             let pin = raw_pin
                 .parse::<u16>()
                 .map(Pin::new)
                 .map_err(|_| PairsError::InvalidPin(raw_pin))?;
 
-            apply::ApplyCommand::new(pin).execute(prompter, git_client)
+            apply::ApplyCommand::new(pin).execute(prompter, git_client, writer)
         }
     }
 }
@@ -61,8 +72,10 @@ mod tests {
         let prompter = MockPrompter::new();
         let git_client = MockGitClient::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = dispatch(cli, &prompter, &git_client);
+        let result = dispatch(cli, &prompter, &git_client, &mut output);
 
         // then
         assert!(result.is_err());
@@ -99,8 +112,10 @@ mod tests {
         let mut mock_prompter = MockPrompter::new();
         mock_prompter.expect_confirm().returning(|_, _| Ok(false));
 
+        let mut output = Vec::new();
+
         // when
-        let result = dispatch(cli, &mock_prompter, &mock_git_client);
+        let result = dispatch(cli, &mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_ok());
@@ -124,8 +139,10 @@ mod tests {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = dispatch(cli, &mock_prompter, &mock_git_client);
+        let result = dispatch(cli, &mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_ok());
@@ -149,8 +166,10 @@ mod tests {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = dispatch(cli, &mock_prompter, &mock_git_client);
+        let result = dispatch(cli, &mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_err());
@@ -194,8 +213,10 @@ mod tests {
         let mut mock_prompter = MockPrompter::new();
         mock_prompter.expect_confirm().returning(|_, _| Ok(false));
 
+        let mut output = Vec::new();
+
         // when
-        let result = dispatch(cli, &mock_prompter, &mock_git_client);
+        let result = dispatch(cli, &mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_ok());
@@ -218,8 +239,10 @@ mod tests {
 
         let mock_prompter = MockPrompter::new();
 
+        let mut output = Vec::new();
+
         // when
-        let result = dispatch(cli, &mock_prompter, &mock_git_client);
+        let result = dispatch(cli, &mock_prompter, &mock_git_client, &mut output);
 
         // then
         assert!(result.is_err());
