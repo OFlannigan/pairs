@@ -16,4 +16,4 @@ jobs:
         with:
           tool: nextest
       - name: Run tests
-        run: cargo nextest run --all-features --no-fail-fast --profile ci
+        run: cargo nextest run --all-features --no-fail-fast
