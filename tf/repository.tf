@@ -36,8 +36,8 @@ resource "github_branch_protection" "main_protection" {
   require_conversation_resolution = true
 
   required_status_checks {
-    strict   = false
-    contexts = []
+    strict   = true
+    contexts = ["CI"]
   }
 }
 
