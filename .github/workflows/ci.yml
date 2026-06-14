@@ -5,14 +5,10 @@ on:
   - workflow_dispatch
 jobs:
   test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Runs tests
-        uses: ./.github/workflows/test.yml
+    name: Runs tests
+    uses: ./.github/workflows/test.yml
 
   build:
-    runs-on: ubuntu-latest
     needs: test
-    steps:
-      - name: Build project
-        uses: ./.github/workflows/build.yml
+    name: Build project
+    uses: ./.github/workflows/build.yml
