@@ -1,0 +1,35 @@
+name: Dependabot auto-approve
+on: pull_request
+
+permissions:
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Runs tests
+        uses: ./.github/workflows/test.yml
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Build project
+        uses: ./.github/workflows/build.yml
+
+  dependabot:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Approve PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
