@@ -154,6 +154,7 @@ fn fails_on_unknown_pin() {
     // then
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
+    eprintln!("Actual stderr: {stderr}");
     assert!(stderr.contains("Unknown pin: 999"));
 }
 
@@ -217,7 +218,7 @@ fn setup_git_repo_with_remote() -> PathBuf {
     git_in(&bare, &["init", "--bare"]);
 
     let repo = tempfile::tempdir().expect("tempdir").keep();
-    git_in(&repo, &["init"]);
+    git_in(&repo, &["init", "-b", "main"]);
     git_in(&repo, &["config", "user.email", "test@test.com"]);
     git_in(&repo, &["config", "user.name", "Test User"]);
     git_in(&repo, &["remote", "add", "origin", bare.to_str().unwrap()]);
