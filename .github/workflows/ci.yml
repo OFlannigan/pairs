@@ -7,24 +7,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-      - name: Install cargo-nextest
-        uses: taiki-e/install-action@v2
-        with:
-          tool: nextest
-      - name: Run tests
-        run: cargo nextest run --all-features --no-fail-fast
+      - name: Runs tests
+        uses: ./.github/workflows/test.yml
 
   build:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-      - name: Set up Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
       - name: Build project
-        run: cargo build --release
+        uses: ./.github/workflows/build.yml
