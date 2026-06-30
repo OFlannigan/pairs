@@ -10,6 +10,13 @@ resource "github_repository" "pairs" {
   has_wiki        = true
 }
 
+resource "github_workflow_repository_permissions" "pairs_permissions" {
+  repository = github_repository.pairs.name
+
+  can_approve_pull_request_reviews = true
+  default_workflow_permissions     = "read"
+}
+
 resource "github_branch" "development" {
   branch     = "dev"
   repository = github_repository.pairs.name
