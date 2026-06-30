@@ -8,6 +8,8 @@ resource "github_repository" "pairs" {
   has_issues      = true
   has_projects    = false
   has_wiki        = true
+
+  allow_auto_merge = true
 }
 
 resource "github_workflow_repository_permissions" "pairs_permissions" {
