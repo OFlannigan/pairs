@@ -17,3 +17,13 @@ updates:
       day: "tuesday"
       time: "09:00"
       timezone: "Europe/Berlin"
+
+  - package-ecosystem: "opentofu"
+    directory: "tf"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "Europe/Berlin"
+    cooldown:
+      default-days: 14
