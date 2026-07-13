@@ -1,0 +1,8 @@
+name: "Build project"
+description: "Builds the project in release mode"
+runs:
+  using: "composite"
+  steps:
+    - name: Build project
+      run: cargo build --release
+      shell: bash

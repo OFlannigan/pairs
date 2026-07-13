@@ -1,0 +1,12 @@
+name: "Run Tests"
+description: "Runs tests via cargo-nextest"
+runs:
+  using: "composite"
+  steps:
+    - name: Install cargo-nextest
+      uses: taiki-e/install-action@v2
+      with:
+        tool: nextest
+    - name: Execute nextest
+      run: cargo nextest run --all-features --no-fail-fast
+      shell: bash
