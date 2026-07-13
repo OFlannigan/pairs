@@ -7,6 +7,8 @@ jobs:
   test-and-build:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
       - name: Setup
         uses: ./.github/actions/setup
       - name: Test
@@ -22,7 +24,7 @@ jobs:
     steps:
       - name: Check results
         run: |
-          if [[ "${{ needs.test.result }}" != "success" || "${{ needs.build.result }}" != "success" ]]; then
+          if [[ "${{ needs.test-and-build.result }}" != "success" ]]; then
             echo "One or more jobs failed"
             exit 1
           fi
